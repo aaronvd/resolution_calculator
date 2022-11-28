@@ -4,64 +4,10 @@ from matplotlib import pyplot as plt
 import plotly.graph_objects as go
 import plotly.io as pio
 pio.renderers.default = "browser"
-import types
-import ast
-import csv
-import time
 from tqdm import tqdm
 import scipy.constants
 
 C = scipy.constants.c
-
-def load_list(filename):
-    '''
-        Loads in CSV file, supporting nested lists (i.e. CSVs exported from multidimensional arrays)
-    '''
-    list1 = []
-    with open(filename, 'r', newline='\n') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        for row in reader:
-            list1.append(row)
-    try:
-        list1 = [[float(v) for v in r] for r in list1]
-    except:
-        list1 = [[ast.literal_eval(i) for i in v] for v in list1]
-    return list1
-
-def fft_resample(img, Nx, Ny, Nz):
-    '''
-    Resamples image img by padding or truncating in the Fourier domain.
-
-    '''
-    img = np.fft.fftshift(np.fft.fftn(np.fft.fftshift(img)))
-    scal = img.size
-    img = padortruncate(img, Nx, Ny, Nz)
-    scal = img.size / scal
-    img = np.fft.fftshift(np.fft.ifftn(np.fft.fftshift(img)))*scal
-
-    return img
-
-def padortruncate(array, dx, dy, dz, val_bg=0):
-    '''
-    Pads (with value val_bg) or truncates array depending on whether array dimensions are great than or less than (dx, dy)
-
-    '''
-    dx = int(dx)
-    dy = int(dy)
-    dz = int(dz)
-    nx = max((dx-array.shape[0])//2, 0)
-    ny = max((dy-array.shape[1])//2, 0)
-    nz = max((dz-array.shape[2])//2, 0)
-    px = max((array.shape[0]-dx)//2, 0)
-    py = max((array.shape[1]-dy)//2, 0)
-    pz = max((array.shape[2]-dz)//2, 0)
-    newarray = val_bg * np.ones((dx, dy, dz), dtype=array.dtype)
-    cx = min(array.shape[0], dx)
-    cy = min(array.shape[1], dy)
-    cz = min(array.shape[2], dz)
-    newarray[nx:nx+cx, ny:ny+cy, nz:nz+cz] = array[px:px+cx, py:py+cy, pz:pz+cz]
-
-    return newarray
 
 class ResolutionCalculator():
     '''
